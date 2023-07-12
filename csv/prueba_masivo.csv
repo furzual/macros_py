@@ -1,0 +1,5 @@
+﻿MerchantDBAName,SolutionType,SID,MID,TID,MCC,Prosa,Street,Colony,City,State,CP,Contact,Email,Phone
+PruebaDBA,Payment URL,62996699,84000120006,1504926,1234,9900003,StreetTest,ColonyTest,CityTest,DIF,53120,ContactTest,EmailTest@gmail.com,5522334455
+PruebaDBA2,Link de Pago,62996698,84000120006,1504926,1234,9900003,StreetTest2,ColonyTest2,CityTest2,DIF,53120,ContactTest2,EmailTest2@gmail.com,5522334454
+PruebaDBA3,Payment URL,62996697,84000120006,1504926,1234,,StreetTest3,ColonyTest3,CityTest3,DIF,53120,ContactTest3,EmailTest3@gmail.com,5522334445
+PruebaDBA4,Link de Pago,62996696,84000120006,1504926,1234,,StreetTest2,ColonyTest2,CityTest4,DIF,53120,ContactTest2,EmailTest2@gmail.com,5522334454
