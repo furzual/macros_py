@@ -69,7 +69,7 @@ def cargar_csv():
                     apiPassword = "tester02"
                     apiUser = "WSIPG"
                     certificateName = "WSIPG"
-                    CertPwd = 'IPGAPI'
+                    CertPwd = 'IPGAPIyy'
 
                     for i in range (0,len(SID)):
                         storepass = generar_texto_alfanumerico(8)
@@ -755,7 +755,7 @@ def cargar_csv():
 
 def generar_texto_alfanumerico(longitud):
     caracteres = string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,./?'
-    caracteres = caracteres.replace('<', '').replace('>', '')
+    caracteres = caracteres.replace('<', '').replace('>', '').replace('&','')
     primer_caracter = random.choice(string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,./?')
     texto = primer_caracter + ''.join(random.choice(caracteres) for _ in range(longitud - 1))
     return texto
