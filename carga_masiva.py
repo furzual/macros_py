@@ -3,12 +3,12 @@ from tkinter import filedialog
 from tkinter import ttk
 import csv
 import re
-import json
+import os
+from flask import Flask, send_file
 import random
 import string
 from datetime import date
-import io
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 
 def cargar_csv():
     archivo = filedialog.askopenfilename(filetypes=[('Archivos CSV', '*.csv')])
@@ -52,6 +52,7 @@ def cargar_csv():
                 fecha_actual = date.today()
                 dtToday = fecha_actual.strftime("%Y-%m-%d")
                 storepasswords=[]
+                sharedsecrets=[]
                 csv_exp=[]
 
                 # Aquí puedes utilizar los datos para el procesamiento o la carga masiva
@@ -68,7 +69,7 @@ def cargar_csv():
                     apiPassword = "tester02"
                     apiUser = "WSIPG"
                     certificateName = "WSIPG"
-                    CertPwd = 'password'
+                    CertPwd = 'IPGAPI'
 
                     for i in range (0,len(SID)):
                         storepass = generar_texto_alfanumerico(8)
@@ -84,6 +85,7 @@ def cargar_csv():
                     apiUser = "WSIPG"
                     certificateName = "WSIPG"
                     CertPwd = 'password'
+                    p12path = r'C:\Users\FISERV\Documents\p12_masivo\test\test.p12'
 
 ##                    baseURL = "https://www2.ipg-online.com/mcsWebService"
 ##                    apiPassword = "z>GiE69~sh"
@@ -95,6 +97,8 @@ def cargar_csv():
                         node_xml = ''
                         storepass = generar_texto_alfanumerico(8)
                         storepasswords.append(storepass)
+                        sharedsec = ''
+                        
                         # Lista para almacenar los resultados de las solicitudes
                         resultados = []
 
@@ -120,12 +124,13 @@ def cargar_csv():
                         sol_type = solution[i]
 
                         if sol_type == 'Payment URL':
+                            sharedsec = generar_texto_alfanumerico(8)
                             #creacion de soap PaymentURL
                             soap_xml = f'''
-                            <SOAP-ENV:Envelope xmlns:SOAP-ENV=""http://schemas.xmlsoap.org/soap/envelope/"">
+                            <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
                                <SOAP-ENV:Header />
                                <SOAP-ENV:Body>
-                                  <ns2:mcsRequest xmlns:ns2=""http://www.ipg-online.com/mcsWebService"">
+                                  <ns2:mcsRequest xmlns:ns2="http://www.ipg-online.com/mcsWebService">
                                      <ns2:createStore>
                                         <ns2:store>
                                                 <ns2:storeID>{SID[i]}</ns2:storeID>
@@ -163,11 +168,11 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>reviewURL</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>transactionNotificationURL</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>allowVoid</ns2:item>
@@ -175,11 +180,11 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>responseSuccessURL</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>responseFailureURL</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>checkoutOptionCombinedPage</ns2:item>
@@ -215,7 +220,7 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>sharedSecret</ns2:item>
-                                                        <ns2:value>sharedSecret</ns2:value>
+                                                        <ns2:value>{sharedsec}</ns2:value>
                                                     </ns2:config>
                                                 </ns2:service>
                                                 <ns2:service>
@@ -307,15 +312,15 @@ def cargar_csv():
                                                     <ns2:type>3dSecure</ns2:type>
                                                     <ns2:config>
                                                         <ns2:item>amex3DSRequestorId</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>acquirerName</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>allowed3dsServerVersionMax</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>allowECI7onIVRPAResUifInternational</ns2:item>
@@ -335,7 +340,7 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>amexMID</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>iciciOnUsVereq</ns2:item>
@@ -343,7 +348,7 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>dinersMID</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>mc3DS2DataOnly</ns2:item>
@@ -355,7 +360,7 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>maestroMID</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>allowMPIViaAPI</ns2:item>
@@ -363,7 +368,7 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>vmid</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>declineSameXIDandECI</ns2:item>
@@ -371,11 +376,11 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>transactionRiskAnalysis</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>jcbMID</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>declineSameAAV</ns2:item>
@@ -403,15 +408,15 @@ def cargar_csv():
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>visaPassword</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>excludedCardCountries</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                     <ns2:config>
                                                         <ns2:item>jcbPassword</ns2:item>
-                                                        <ns2:value xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:nil=""true""/>
+                                                        <ns2:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
                                                     </ns2:config>
                                                 </ns2:service>
                                                 <ns2:terminal>
@@ -449,22 +454,22 @@ def cargar_csv():
                             '''
                             
                             #Petición SOAP PaymentURL
-                            # Crear un ThreadPoolExecutor con un máximo de hilos
-                            executor = ThreadPoolExecutor(max_workers=10)
-
-                            peticion = realizar_solicitud_soap(baseURL, apiPassword, apiUser, certificateName, soap_xml)
-                            resultados.append(peticion)
-
-                            print('resultados',resultados)
+                            
 
                         if sol_type == 'Link de Pago':
                             #creacion de soap Link de Pago
                             soap_xml = f'''
-                            <SOAP-ENV:Envelope xmlns:SOAP-ENV=""http://schemas.xmlsoap.org/soap/envelope/"">
+                            <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
                                <SOAP-ENV:Header />
                                <SOAP-ENV:Body>
-                                  <ns2:mcsRequest xmlns:ns2=""http://www.ipg-online.com/mcsWebService"">
+                                  <ns2:mcsRequest xmlns:ns2="http://www.ipg-online.com/mcsWebService">
                                      <ns2:createStore>
+                                         <ns2:merchant>
+                                             <ns2:merchantID>832207603</ns2:merchantID>
+                                             <ns2:merchantAdmin>
+                                                 <ns2:id>T832207603</ns2:id>
+                                             </ns2:merchantAdmin>
+                                         </ns2:merchant>
                                          <ns2:store>
                                              <ns2:storeID>{SID[i]}</ns2:storeID>
                                              <ns2:storeAdmin>
@@ -591,15 +596,15 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>dinersMID</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>jcbMID</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>maestroMID</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>allowSplitAuthentication</ns2:item>
@@ -611,11 +616,11 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>excludedCardCountries</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>transactionRiskAnalysis</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>allowECI1andECI6</ns2:item>
@@ -623,7 +628,7 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>visaPassword</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>allowECI7onIVRPAResUifInternational</ns2:item>
@@ -639,7 +644,7 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>amexMID</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>mastercardMID</ns2:item>
@@ -647,11 +652,11 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>vmid</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>allowed3dsServerVersionMax</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>iciciOnUsVereq</ns2:item>
@@ -671,7 +676,7 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>acquirerName</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>allowMPIViaAPI</ns2:item>
@@ -683,7 +688,7 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>amex3DSRequestorId</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>declineSameAAV</ns2:item>
@@ -691,7 +696,7 @@ def cargar_csv():
                                                  </ns2:config>
                                                  <ns2:config>
                                                      <ns2:item>jcbPassword</ns2:item>
-                                                     <ns2:value xsi:nil=""true"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""/>
+                                                     <ns2:value xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                                                  </ns2:config>
                                              </ns2:service>
                                              <ns2:terminal>
@@ -727,81 +732,65 @@ def cargar_csv():
                                </SOAP-ENV:Body>
                             </SOAP-ENV:Envelope>
                             '''
-                            node_xml=f'''
-                            <SOAP-ENV:Envelope xmlns:SOAP-ENV=""http://schemas.xmlsoap.org/soap/envelope/"">
-                               <SOAP-ENV:Header />
-                               <SOAP-ENV:Body>
-                                  <ns2:mcsRequest xmlns:ns2=""http://www.ipg-online.com/mcsWebService"">
-                                     <ns2:reassignStoreInHierarchy>
-                                        <ns2:merchantID>41583802634</ns2:merchantID>
-                                        <ns2:storeID>{SID[i]}</ns2:storeID>
-                                     </ns2:reassignStoreInHierarchy>
-                                  </ns2:mcsRequest>
-                               </SOAP-ENV:Body>
-                            </SOAP-ENV:Envelope>
-                            '''
-                        #print ('xml',soap_xml)
-                        #print('node_xml: ',node_xml)
+                            
+                        print ('xml:',soap_xml)
+                        sharedsecrets.append(sharedsec)
 
                     csv_exp.append(SID)
                     csv_exp.append(MID)
                     csv_exp.append(dba)
                     csv_exp.append(storepasswords)
-                    print('csv_exp: ',csv_exp)
+                    csv_exp.append(sharedsecrets)
+                    #print('csv_exp: ',csv_exp)
+                    generar_csv(csv_exp)                      
                     
                     
 
                 # Actualizar el cuadro de respuesta
-                respuesta.config(text="Archivo cargado exitosamente", fg="green")
+                respuesta.config(text="Archivo cargado exitosamente. \n CSV generado en downloads del proyecto", fg="green")
         except Exception as e:
             # Actualizar el cuadro de respuesta en caso de error
             respuesta.config(text="Error al cargar el archivo", fg="red")
             print(str(e))
 
 def generar_texto_alfanumerico(longitud):
-    caracteres = string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,.<>/?'
-    caracteres = caracteres.replace('~', '').replace('\\', '').replace('"', '').replace("'", "")
-    texto = ''.join(random.choice(caracteres) for _ in range(longitud))
+    caracteres = string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,./?'
+    caracteres = caracteres.replace('<', '').replace('>', '')
+    primer_caracter = random.choice(string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,./?')
+    texto = primer_caracter + ''.join(random.choice(caracteres) for _ in range(longitud - 1))
     return texto
 
-def generar_csv(datos):
-    nombre_archivo = 'carga_masiva.csv'
-    with open(nombre_archivo, 'w', newline='') as archivo_csv:
-        writer = csv.writer(archivo_csv)
-        writer.writerows(datos)
+    
+def generar_csv(matriz):
+    encabezados = ['SID', 'MID', 'DBA', 'Password','SharedSecret']
+    # Obtener la fecha y hora actual
+    fecha_hora_actual = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    return send_file(nombre_archivo, as_attachment=True, attachment_filename='carga_masiva.csv')
+    # Nombre del archivo con la fecha y hora actual
+    nombre_archivo = f'respuestas_url_{fecha_hora_actual}.csv'
 
-import http.client
-import ssl
+    # Comprobar si la carpeta "downloads" existe, de lo contrario, crearla
+    if not os.path.exists('downloads'):
+        os.makedirs('downloads')
 
-def realizar_solicitud_soap(baseURL, apiPassword, apiUser, certificateName, xml):
-    # Establecer la conexión
-    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    context.load_cert_chain(certfile='ruta/al/archivo.p12', password='contraseña_del_certificado')
+    # Ruta del archivo CSV
+    ruta_archivo = os.path.join('downloads', nombre_archivo)
 
-    conn = http.client.HTTPSConnection(baseURL, context=context)
+    # Transponer la matriz para cambiar las filas por columnas
+    matriz_transpuesta = list(map(list, zip(*matriz)))
 
-    # Configurar los encabezados y el cuerpo de la solicitud
-    headers = {
-        'Content-Type': 'text/xml;charset=UTF-8',
-        'SOAPAction': 'URI_de_la_acción_SOAP'
-    }
-    body = xml
+    # Escribir los datos en el archivo CSV
+    with open(ruta_archivo, 'w', newline='') as archivo:
+        writer = csv.writer(archivo)
 
-    # Realizar la solicitud POST
-    conn.request('POST', '/', headers=headers, body=body, auth=(apiUser, apiPassword))
+        # Escribir los encabezados
+        writer.writerow(encabezados)
 
-    # Obtener la respuesta
-    response = conn.getresponse()
+        # Escribir los datos de la matriz transpuesta
+        writer.writerows(matriz_transpuesta)
 
-    if response.status == 200:
-        respuesta = response.read()
-        # Procesar la respuesta como desees
-        return respuesta.decode('utf-8')
-    else:
-        # Manejar el caso de una respuesta no exitosa
-        return f'Error en la solicitud: {response.status} {response.reason}'
+    print(f'Archivo CSV generado: {ruta_archivo}')
+
 
 
 # Crear la ventana principal
