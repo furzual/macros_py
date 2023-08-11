@@ -34,23 +34,37 @@ def post_request_with_pfx(url, xml_body, username, password, pfx_file_path, pfx_
     return response
 
 # Variables de prueba
-url = 'https://test.ipg-online.com/mcsWebService'
-body = '''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mcs="http://www.ipg-online.com/mcsWebService">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <mcs:mcsRequest>
-         <mcs:getStore>
-            <mcs:storeID>230995000</mcs:storeID>
-         </mcs:getStore>
-      </mcs:mcsRequest>
-   </soapenv:Body>
+url = 'https://test.ipg-online.com/ipgapi/services'
+body = '''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ipg="http://ipg-online.com/ipgapi/schemas/ipgapi" xmlns:v1="http://ipg-online.com/ipgapi/schemas/v1">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <ipg:IPGApiOrderRequest>
+            <v1:Transaction>
+                <v1:CreditCardTxType>
+                    <v1:StoreId>8118990003</v1:StoreId>
+                    <v1:Type>sale</v1:Type>
+                </v1:CreditCardTxType>
+                <v1:CreditCardData>
+                    <v1:CardNumber>4111111111111111</v1:CardNumber>
+                    <v1:ExpMonth>12</v1:ExpMonth>
+                    <v1:ExpYear>25</v1:ExpYear>
+                    <v1:CardCodeValue>123</v1:CardCodeValue>
+                </v1:CreditCardData>
+                <v1:Payment>
+                    <v1:ChargeTotal>45.00</v1:ChargeTotal>
+                    <v1:Currency>780</v1:Currency>
+                </v1:Payment>
+            </v1:Transaction>
+        </ipg:IPGApiOrderRequest>
+    </soapenv:Body>
 </soapenv:Envelope>'''
-username = 'WSIPG'
-password = 'tester02'
-pfx_file_path = r'C:\Users\FISERV\Documents\p12_masivo\test\test.p12'  # La ruta correcta de tu archivo .p12
+username = 'WST41583819440._.1'
+password = 'h.9egG5<kv'
+pfx_file_path = r'C:\Users\FISERV\Downloads\WST41583819440._.1.p12'  # La ruta correcta de tu archivo .p12
 
 # Llamar a la función y obtener la respuesta
-response = post_request_with_pfx(url, body, username, password, pfx_file_path, 'IPGAPI')
+response = post_request_with_pfx(url, body, username, password, pfx_file_path, 'UXxK>-59xA')
 
 # Imprimir la respuesta
+print(response)
 print(response.text)
