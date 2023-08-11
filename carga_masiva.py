@@ -9,6 +9,7 @@ import random
 import string
 from datetime import date
 from datetime import datetime
+import requests_pkcs12
 
 def cargar_csv():
     archivo = filedialog.askopenfilename(filetypes=[('Archivos CSV', '*.csv')])
@@ -53,6 +54,8 @@ def cargar_csv():
                 dtToday = fecha_actual.strftime("%Y-%m-%d")
                 storepasswords=[]
                 sharedsecrets=[]
+                responses=[]
+                responses_xml=[]
                 csv_exp=[]
 
                 # Aquí puedes utilizar los datos para el procesamiento o la carga masiva
@@ -84,7 +87,7 @@ def cargar_csv():
                     apiPassword = "tester02"
                     apiUser = "WSIPG"
                     certificateName = "WSIPG"
-                    CertPwd = 'password'
+                    CertPwd = 'IPGAPI'
                     p12path = r'C:\Users\FISERV\Documents\p12_masivo\test\test.p12'
 
 ##                    baseURL = "https://www2.ipg-online.com/mcsWebService"
@@ -150,6 +153,7 @@ def cargar_csv():
                                                 <ns2:acquirer>{acq}</ns2:acquirer>
                                                 <ns2:address>
                                                     <ns2:address1>{street[i]}</ns2:address1>
+                                                    <ns2:address2>{colony[i]}</ns2:address2>
                                                     <ns2:zip>{CP[i]}</ns2:zip>
                                                     <ns2:city>{city[i]}</ns2:city>
                                                     <ns2:state>{state[i]}</ns2:state>
@@ -735,12 +739,18 @@ def cargar_csv():
                             
                         print ('xml:',soap_xml)
                         sharedsecrets.append(sharedsec)
-
+                        resp = post_request_with_pfx(baseURL, soap_xml, apiUser, apiPassword, p12path, CertPwd)
+                        print ('resp', resp.text)
+                        responses.append(resp)
+                        responses_xml.append(resp.text)
+                        
                     csv_exp.append(SID)
                     csv_exp.append(MID)
                     csv_exp.append(dba)
                     csv_exp.append(storepasswords)
                     csv_exp.append(sharedsecrets)
+                    csv_exp.append(responses)
+                    csv_exp.append(responses_xml)
                     #print('csv_exp: ',csv_exp)
                     generar_csv(csv_exp)                      
                     
@@ -760,9 +770,41 @@ def generar_texto_alfanumerico(longitud):
     texto = primer_caracter + ''.join(random.choice(caracteres) for _ in range(longitud - 1))
     return texto
 
+def post_request_with_pfx(url, xml_body, username, password, pfx_file_path, pfx_password):
+    """
+    Realiza una solicitud POST a una URL usando autenticación y certificado.
+
+    Args:
+        url (str): La URL del endpoint.
+        xml_body (str): El contenido XML del body de la solicitud.
+        username (str): El nombre de usuario para la autenticación.
+        password (str): La contraseña para la autenticación.
+        pfx_file_path (str): Ruta al archivo del certificado (.p12).
+        pfx_password (str): Contraseña del certificado.
+
+    Returns:
+        requests.Response: El objeto de respuesta de la solicitud.
+    """
+
+    headers = {
+        "Content-Type": "text/xml",
+        "SOAPAction": ""
+    }
+
+    response = requests_pkcs12.post(
+        url, 
+        headers=headers, 
+        data=xml_body, 
+        auth=(username, password), 
+        pkcs12_filename=pfx_file_path,
+        pkcs12_password=pfx_password,
+        verify=True  # A veces es necesario deshabilitar la verificación, pero no es lo más seguro
+    )
+
+    return response
     
 def generar_csv(matriz):
-    encabezados = ['SID', 'MID', 'DBA', 'Password','SharedSecret']
+    encabezados = ['SID', 'MID', 'DBA', 'Password','SharedSecret','Responses','XML_response']
     # Obtener la fecha y hora actual
     fecha_hora_actual = datetime.now().strftime('%Y%m%d_%H%M%S')
 
