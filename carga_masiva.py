@@ -1,3 +1,4 @@
+from numba import njit
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
@@ -10,6 +11,7 @@ import string
 from datetime import date
 from datetime import datetime
 import requests_pkcs12
+import time
 
 def cargar_csv():
     archivo = filedialog.askopenfilename(filetypes=[('Archivos CSV', '*.csv')])
@@ -66,6 +68,7 @@ def cargar_csv():
 
                 #Configuracion para test
                 if env_value == 'test':
+                    inicio = time.time()
                     visamid = 9900003
                     mcmid = 9900004
                     baseURL = "https://test.ipg-online.com/mcsWebService"
@@ -728,7 +731,7 @@ def cargar_csv():
                 
                 #Configuracion para produccion
                 if env_value == 'prod':
-
+                    inicio = time.time()
                     baseURL = "https://www2.ipg-online.com/mcsWebService"
                     apiPassword = "z>GiE69~sh"
                     apiUser = "WST315869._.1"
@@ -1376,10 +1379,10 @@ def cargar_csv():
                             </SOAP-ENV:Envelope>
                             '''
                             
-                        print ('xml:',soap_xml)
+                        #print ('xml:',soap_xml)
                         sharedsecrets.append(sharedsec)
                         resp = post_request_with_pfx(baseURL, soap_xml, apiUser, apiPassword, p12path, CertPwd)
-                        print ('resp', resp.text)
+                        print ('sid:',SID[i],'  resp:', resp)
                         responses.append(resp)
                         responses_xml.append(resp.text)
                         
@@ -1396,16 +1399,24 @@ def cargar_csv():
                     
 
                 # Actualizar el cuadro de respuesta
+                tiempo_total = time.time() - inicio
+                print(f"Tiempo total de ejecución: {tiempo_total:.4f} segundos")
                 respuesta.config(text="Archivo cargado exitosamente. \n CSV generado en downloads del proyecto", fg="green")
         except Exception as e:
             # Actualizar el cuadro de respuesta en caso de error
             respuesta.config(text="Error al cargar el archivo", fg="red")
             print(str(e))
 
+def payment_url_req():
+    print("hola")
+
+def link_pago_req():
+    print("hola")
+
 def generar_texto_alfanumerico(longitud):
-    caracteres = string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,./?'
+    caracteres = string.ascii_letters + string.digits + '!@#$%^*()_+-=[]{}|;:,./?'
     caracteres = caracteres.replace('<', '').replace('>', '').replace('&','')
-    primer_caracter = random.choice(string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,./?')
+    primer_caracter = random.choice(string.ascii_letters + string.digits + '!@#$%^*()_+-=[]{}|;:,./?')
     texto = primer_caracter + ''.join(random.choice(caracteres) for _ in range(longitud - 1))
     return texto
 
