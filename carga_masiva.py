@@ -14,6 +14,7 @@ import requests_pkcs12
 import time
 
 def cargar_csv():
+    username = os.getlogin()
     archivo = filedialog.askopenfilename(filetypes=[('Archivos CSV', '*.csv')])
 
     if archivo:
@@ -75,7 +76,8 @@ def cargar_csv():
                     apiPassword = "tester02"
                     apiUser = "WSIPG"
                     CertPwd = 'IPGAPI'
-                    p12path = r'C:\Users\FISERV\Documents\p12_masivo\test\test.p12'
+                    #p12path = r'./p12/test/test.p12'
+                    p12path = fr'C:\Users\{username}\Documents\p12_masivo\test\test.p12'
 
                     for i in range (0,len(SID)):
                         node_xml = ''
@@ -736,7 +738,8 @@ def cargar_csv():
                     apiPassword = "z>GiE69~sh"
                     apiUser = "WST315869._.1"
                     CertPwd = 'password'
-                    p12path = r'C:\Users\FISERV\Documents\p12_masivo\fdmx\fdmx.p12'
+                    p12path = fr'C:\Users\{username}\Documents\p12_masivo\fdmx\fdmx.p12'
+                    #p12path = r'./p12/prod/fdmx.p12'
 
                     for i in range (0,len(SID)):
                         node_xml = ''
