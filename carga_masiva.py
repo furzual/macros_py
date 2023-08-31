@@ -714,7 +714,7 @@ def cargar_csv():
                             </SOAP-ENV:Envelope>
                             '''
                             
-                        print ('xml:',soap_xml)
+                        #print ('xml:',soap_xml)
                         sharedsecrets.append(sharedsec)
                         resp = post_request_with_pfx(baseURL, soap_xml, apiUser, apiPassword, p12path, CertPwd)
                         print ('resp', resp.text)
@@ -729,7 +729,7 @@ def cargar_csv():
                     csv_exp.append(responses)
                     csv_exp.append(responses_xml)
                     #print('csv_exp: ',csv_exp)
-                    generar_csv(csv_exp)
+                    generar_csv(csv_exp,username)
                 
                 #Configuracion para produccion
                 if env_value == 'prod':
@@ -1397,7 +1397,7 @@ def cargar_csv():
                     csv_exp.append(responses)
                     csv_exp.append(responses_xml)
                     #print('csv_exp: ',csv_exp)
-                    generar_csv(csv_exp)                      
+                    generar_csv(csv_exp,username)                      
                     
                     
 
@@ -1409,12 +1409,6 @@ def cargar_csv():
             # Actualizar el cuadro de respuesta en caso de error
             respuesta.config(text="Error al cargar el archivo", fg="red")
             print(str(e))
-
-def payment_url_req():
-    print("hola")
-
-def link_pago_req():
-    print("hola")
 
 def generar_texto_alfanumerico(longitud):
     caracteres = string.ascii_letters + string.digits + '!@#$%^*()_+-=[]{}|;:,./?'
@@ -1456,20 +1450,26 @@ def post_request_with_pfx(url, xml_body, username, password, pfx_file_path, pfx_
 
     return response
     
-def generar_csv(matriz):
-    encabezados = ['SID', 'MID', 'DBA', 'Password','SharedSecret','Responses','XML_response']
+def generar_csv(matriz,username):
+    encabezados = ['SID', 'MID', 'DBA', 'Password', 'SharedSecret', 'Responses', 'XML_response']
     # Obtener la fecha y hora actual
     fecha_hora_actual = datetime.now().strftime('%Y%m%d_%H%M%S')
 
     # Nombre del archivo con la fecha y hora actual
     nombre_archivo = f'respuestas_url_{fecha_hora_actual}.csv'
 
-    # Comprobar si la carpeta "downloads" existe, de lo contrario, crearla
-    if not os.path.exists('downloads'):
-        os.makedirs('downloads')
+    # Obtener el nombre de usuario actual de Windows
+    username = os.getlogin()
 
-    # Ruta del archivo CSV
-    ruta_archivo = os.path.join('downloads', nombre_archivo)
+    # Construir la ruta completa del directorio de descargas
+    ruta_descargas = fr'C:\Users\{username}\Downloads'
+
+    # Comprobar si la carpeta de descargas existe, de lo contrario, crearla
+    if not os.path.exists(ruta_descargas):
+        os.makedirs(ruta_descargas)
+
+    # Ruta completa del archivo CSV
+    ruta_archivo = os.path.join(ruta_descargas, nombre_archivo)
 
     # Transponer la matriz para cambiar las filas por columnas
     matriz_transpuesta = list(map(list, zip(*matriz)))
@@ -1485,6 +1485,9 @@ def generar_csv(matriz):
         writer.writerows(matriz_transpuesta)
 
     print(f'Archivo CSV generado: {ruta_archivo}')
+
+# Llamada a la función con matriz como argumento
+# generar_csv(matriz)
 
 
 
