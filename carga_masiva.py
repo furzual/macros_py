@@ -1553,18 +1553,6 @@ btn_cargar = tk.Button(
 )
 btn_cargar.pack(pady=10)
 
-# Botón descargable
-btn_descargar = tk.Button(
-    ventana,
-    text="Descargar CSV",
-    command=generar_csv,
-    font=estilo_fuente,
-    bg="brown",
-    fg="white",
-    relief=tk.FLAT
-)
-btn_descargar.pack(pady=10)
-
 # Ajustar tamaño de la ventana
 ventana.geometry("400x350")
 
