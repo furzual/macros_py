@@ -52,13 +52,25 @@ sid=[]
 mid=[]
 dba=[]
 tid=[]
+tnode=[]
 #prosa=[]
-baseURL = "https://www2.ipg-online.com/mcsWebService"
-apiPassword = "z>GiE69~sh"
-apiUser = "WST315869._.1"
-CertPwd = 'password'
-p12path = fr'C:\Users\FISERV\Documents\p12_masivo\fdmx\fdmx.p12'
 
+#FDMX
+# baseURL = "https://www2.ipg-online.com/mcsWebService"
+# apiPassword = "z>GiE69~sh"
+# apiUser = "WST315869._.1"
+# CertPwd = 'password'
+# p12path = fr'C:\Users\FISERV\Documents\p12_masivo\\prod\fdmx.p12'
+
+#FGB
+baseURL = "https://www2.ipg-online.com/mcsWebService"
+apiPassword = "b\\v=d9A7eg"
+apiUser = "WST313086._.1"
+CertPwd = 'Welcome@123'
+p12path = fr'C:\Users\FISERV\Documents\p12_masivo\\fgb\WST313086.p12'
+
+
+#TEST
 # baseURL = "https://test.ipg-online.com/mcsWebService"
 # apiPassword = "tester02"
 # apiUser = "WSIPG"
@@ -69,7 +81,7 @@ p12path = fr'C:\Users\FISERV\Documents\p12_masivo\fdmx\fdmx.p12'
 inicio = time.time()
 
 def generar_csv(matriz,username):
-    encabezados = ['SID', 'MID','TID','DBA']
+    encabezados = ['SID', 'MID','TID','DBA','NODE']
     # Obtener la fecha y hora actual
     fecha_hora_actual = datetime.now().strftime('%Y%m%d_%H%M%S')
 
@@ -116,10 +128,9 @@ def process_request(i):
                 </mcs:getStore>
             </mcs:mcsRequest>
         </soapenv:Body>
-        </soapenv:Envelope>
+    </soapenv:Envelope>
     '''
     resp = post_request_with_pfx(baseURL, soap_xml, apiUser, apiPassword, p12path, CertPwd)
-    print('Respuesta', resp.text)
     return i, resp
 
 # Función para procesar la solicitud con la matriz ingresada
@@ -141,12 +152,15 @@ def procesar_matriz():
         mid = []
         dba = []
         tid = []
-
+        tnode = []
+        #print('results: ',results)
         for i, resp in results:
+            print('resp: ',resp.text)
             root = ET.fromstring(resp.text)
             external_merchant_id_element = root.find(".//ns2:externalMerchantID", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
             dba_xml = root.find(".//ns2:dba", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
             tid_xml = root.find(".//ns2:terminalID", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
+            tnode_xml = root.find(".//ns2:id", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
 
             if external_merchant_id_element is not None:
                 external_merchant_id = external_merchant_id_element.text
@@ -155,17 +169,20 @@ def procesar_matriz():
                 mid.append(external_merchant_id)
                 tid.append(tid_xml.text)
                 dba.append(dba_xml.text)
+                tnode.append(resp.text)
             else:
                 print("No se encontró el elemento externalMerchantID en el XML.")
                 sid.append(i)
                 mid.append("NO MID")
                 tid.append("NO TID")
                 dba.append("NO DBA")
+                tnode.append("NO NODO")
 
         csv_exp.append(sid)
         csv_exp.append(mid)
         csv_exp.append(tid)
         csv_exp.append(dba)
+        csv_exp.append(tnode)
         generar_csv(csv_exp, username)
 
         tiempo_total = time.time() - inicio

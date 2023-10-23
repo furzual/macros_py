@@ -52,12 +52,23 @@ sid=[]
 mid=[]
 dba=[]
 tid=[]
+tnode=[]
+result=[]
 #prosa=[]
+
+#FDMX
+# baseURL = "https://www2.ipg-online.com/mcsWebService"
+# apiPassword = "z>GiE69~sh"
+# apiUser = "WST315869._.1"
+# CertPwd = 'password'
+# p12path = fr'C:\Users\FISERV\Documents\p12_masivo\\prod\fdmx.p12'
+
+#FGB
 baseURL = "https://www2.ipg-online.com/mcsWebService"
-apiPassword = "z>GiE69~sh"
-apiUser = "WST315869._.1"
-CertPwd = 'password'
-p12path = fr'C:\Users\FISERV\Documents\p12_masivo\fdmx\fdmx.p12'
+apiPassword = "b\\v=d9A7eg"
+apiUser = "WST313086._.1"
+CertPwd = 'Welcome@123'
+p12path = fr'C:\Users\FISERV\Documents\p12_masivo\\fgb\WST313086.p12'
 
 # baseURL = "https://test.ipg-online.com/mcsWebService"
 # apiPassword = "tester02"
@@ -69,7 +80,7 @@ p12path = fr'C:\Users\FISERV\Documents\p12_masivo\fdmx\fdmx.p12'
 inicio = time.time()
 
 def generar_csv(matriz,username):
-    encabezados = ['SID', 'MID','TID','DBA']
+    encabezados = ['SID', 'RESULT']
     # Obtener la fecha y hora actual
     fecha_hora_actual = datetime.now().strftime('%Y%m%d_%H%M%S')
 
@@ -107,19 +118,19 @@ def generar_csv(matriz,username):
 
 def process_request(i):
     soap_xml = f'''   
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mcs="http://www.ipg-online.com/mcsWebService">
-        <soapenv:Header/>
-        <soapenv:Body>
-            <mcs:mcsRequest>
-                <mcs:getStore>
-                    <mcs:storeID>{i}</mcs:storeID>
-                </mcs:getStore>
-            </mcs:mcsRequest>
-        </soapenv:Body>
-        </soapenv:Envelope>
+    <SOAP-ENV:Envelope xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'>
+   <SOAP-ENV:Header />
+    <SOAP-ENV:Body>
+        <ns2:mcsRequest xmlns:ns2="http://www.ipg-online.com/mcsWebService">
+            <ns2:reassignStoreInHierarchy>
+                <ns2:merchantID>951373</ns2:merchantID>
+                <ns2:storeID>{i}</ns2:storeID>
+            </ns2:reassignStoreInHierarchy>
+        </ns2:mcsRequest>
+    </SOAP-ENV:Body>
+    </SOAP-ENV:Envelope>
     '''
     resp = post_request_with_pfx(baseURL, soap_xml, apiUser, apiPassword, p12path, CertPwd)
-    print('Respuesta', resp.text)
     return i, resp
 
 # Función para procesar la solicitud con la matriz ingresada
@@ -138,34 +149,15 @@ def procesar_matriz():
 
         csv_exp = []
         sid = []
-        mid = []
-        dba = []
-        tid = []
-
+        result = []
         for i, resp in results:
-            root = ET.fromstring(resp.text)
-            external_merchant_id_element = root.find(".//ns2:externalMerchantID", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
-            dba_xml = root.find(".//ns2:dba", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
-            tid_xml = root.find(".//ns2:terminalID", namespaces={"ns2": "http://www.ipg-online.com/mcsWebService"})
-
-            if external_merchant_id_element is not None:
-                external_merchant_id = external_merchant_id_element.text
-                print("SID:", i, "MID:", external_merchant_id, 'TID:', tid_xml.text, "DBA:", dba_xml.text)
-                sid.append(i)
-                mid.append(external_merchant_id)
-                tid.append(tid_xml.text)
-                dba.append(dba_xml.text)
-            else:
-                print("No se encontró el elemento externalMerchantID en el XML.")
-                sid.append(i)
-                mid.append("NO MID")
-                tid.append("NO TID")
-                dba.append("NO DBA")
+            print('resp: ',resp.text)
+            sid.append(i)
+            result.append(resp.text)
+            print('result: ',result)
 
         csv_exp.append(sid)
-        csv_exp.append(mid)
-        csv_exp.append(tid)
-        csv_exp.append(dba)
+        csv_exp.append(result)
         generar_csv(csv_exp, username)
 
         tiempo_total = time.time() - inicio

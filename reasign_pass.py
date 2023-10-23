@@ -1,4 +1,3 @@
-import requests_pkcs12
 import time
 import concurrent.futures
 import xml.etree.ElementTree as ET
@@ -8,6 +7,10 @@ from datetime import date
 from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
+import random
+import string
+import requests_pkcs12
+import time
 
 def post_request_with_pfx(url, xml_body, username, password, pfx_file_path, pfx_password):
     """
@@ -52,6 +55,7 @@ sid=[]
 mid=[]
 dba=[]
 tid=[]
+password=[]
 #prosa=[]
 baseURL = "https://www2.ipg-online.com/mcsWebService"
 apiPassword = "z>GiE69~sh"
@@ -106,22 +110,36 @@ def generar_csv(matriz,username):
 
 
 def process_request(i):
+    
+    store_pass=generar_texto_alfanumerico(12)
+    print("store_pass: ",store_pass)
     soap_xml = f'''   
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mcs="http://www.ipg-online.com/mcsWebService">
-        <soapenv:Header/>
-        <soapenv:Body>
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mcs="http://www.ipg-online.com/mcsWebService">
+         <soapenv:Header/>
+         <soapenv:Body>
             <mcs:mcsRequest>
-                <mcs:getStore>
-                    <mcs:storeID>{i}</mcs:storeID>
-                </mcs:getStore>
+               <mcs:resetStoreAdminUserPassword>
+                  <mcs:storeID>{i}</mcs:storeID>
+                  <mcs:storeAdmin>
+                     <mcs:id>{i}</mcs:id>
+                     <mcs:password>{store_pass}</mcs:password>
+                  </mcs:storeAdmin>
+               </mcs:resetStoreAdminUserPassword>
             </mcs:mcsRequest>
-        </soapenv:Body>
-        </soapenv:Envelope>
+         </soapenv:Body>
+      </soapenv:Envelope>
     '''
     resp = post_request_with_pfx(baseURL, soap_xml, apiUser, apiPassword, p12path, CertPwd)
     print('Respuesta', resp.text)
-    return i, resp
+    return i, resp, store_pass
 
+def generar_texto_alfanumerico(longitud):
+    caracteres = string.ascii_letters + string.digits + '!@#$%^*()_+-=[]{}|;:,./?'
+    caracteres = caracteres.replace('<', '').replace('>', '').replace('&','')
+    primer_caracter = random.choice(string.ascii_letters + string.digits + '!@#$%^*()_+-=[]{}|;:,./?')
+    texto = primer_caracter + ''.join(random.choice(caracteres) for _ in range(longitud - 1))
+    return texto
+ 
 # Función para procesar la solicitud con la matriz ingresada
 def procesar_matriz():
     valores_matriz = entrada_matriz.get()
@@ -151,12 +169,14 @@ def procesar_matriz():
             if external_merchant_id_element is not None:
                 external_merchant_id = external_merchant_id_element.text
                 print("SID:", i, "MID:", external_merchant_id, 'TID:', tid_xml.text, "DBA:", dba_xml.text)
+                password.append(store_pass)
                 sid.append(i)
                 mid.append(external_merchant_id)
                 tid.append(tid_xml.text)
                 dba.append(dba_xml.text)
             else:
                 print("No se encontró el elemento externalMerchantID en el XML.")
+                password.append("NO PASS")
                 sid.append(i)
                 mid.append("NO MID")
                 tid.append("NO TID")
@@ -172,6 +192,7 @@ def procesar_matriz():
         print(f"Tiempo total de ejecución: {tiempo_total:.4f} segundos")
     except ValueError:
         messagebox.showerror("Error", "Ingresa valores válidos separados por comas (por ejemplo, 6206115,6206114,6206113).")
+
 
 # Crear la ventana Tkinter con un tamaño personalizado
 ventana = tk.Tk()
